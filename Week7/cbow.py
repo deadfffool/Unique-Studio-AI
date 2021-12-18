@@ -15,7 +15,7 @@ class word2vec():
     
     
     # GENERATE TRAINING DATA
-    def generate_training_data(self, settings, corpus):
+    def generate_training_data(self,corpus):
 
         # GENERATE WORD COUNTS
         word_counts = defaultdict(int)
@@ -39,13 +39,13 @@ class word2vec():
             for i, word in enumerate(sentence):
                 
                 #w_target = sentence[i]
-                w_target = self.word2onehot(sentence[i])
+                w_target = np.array(self.word2onehot(sentence[i]))
 
                 # CYCLE THROUGH CONTEXT WINDOW
-                w_context = []
+                w_context = np.array([0 for i in range(0, self.v_count)])
                 for j in range(i-self.window, i+self.window+1):
                     if j!=i and j<=sent_len-1 and j>=0:
-                        w_context.append(self.word2onehot(sentence[j]))
+                        w_context+=np.array(self.word2onehot(sentence[j]))
                 training_data.append([w_target, w_context])
         return np.array(training_data)
 
@@ -95,23 +95,25 @@ class word2vec():
             self.loss = 0
 
             # CYCLE THROUGH EACH TRAINING SAMPLE
-            for w_t, w_c in training_data:
-
+            for j in training_data:
+                w_c = j[1]
+                w_t = j[0]
                 # FORWARD PASS
-                y_pred, h, u = self.forward_pass(w_t)
+                y_pred, h, u = self.forward_pass(w_c)
                 
                 # CALCULATE ERROR
-                EI = np.sum([np.subtract(y_pred, word) for word in w_c], axis=0)
+                EI = y_pred - w_t
 
                 # BACKPROPAGATION
                 self.backprop(EI, h, w_t)
 
                 # CALCULATE LOSS
-                self.loss += -np.sum([u[word.index(1)] for word in w_c]) + len(w_c) * np.log(np.sum(np.exp(u)))
+                self.loss += np.max(y_pred)
                 #self.loss += -2*np.log(len(w_c)) -np.sum([u[word.index(1)] for word in w_c]) + (len(w_c) * np.log(np.sum(np.exp(u))))
-                
+                    
             print ('EPOCH:',i, 'LOSS:', self.loss)
-        pass
+        print(self.w1)
+        print(self.w2)
 
 
     # input a word, returns a vector (if available)
@@ -172,9 +174,9 @@ settings = {}
 settings['n'] = 5                   # dimension of word embeddings
 settings['window_size'] = 2         # context window +/- center word
 settings['min_count'] = 0           # minimum word count
-settings['epochs'] = 10000           # number of training epochs
+settings['epochs'] = 1000         # number of training epochs
 settings['neg_samp'] = 10           # number of negative words to use during training
-settings['learning_rate'] = 0.01    # learning rate
+settings['learning_rate'] = 0.1    # learning rate
 np.random.seed(0)                   # set the seed for reproducibility
 
 text = "the quick brown fox jumped ovwe the lazy dog"
@@ -183,10 +185,9 @@ corpus = [word.lower() for word in text.split()]
 w2v = word2vec()
 
 # generate training data
-training_data = w2v.generate_training_data(settings, corpus)
-print(training_data)
+training_data = w2v.generate_training_data(corpus)
 # train word2vec model
-# w2v.train(training_data)
+w2v.train(training_data)
 
 # print(w2v.word_vec('fox'))
 
