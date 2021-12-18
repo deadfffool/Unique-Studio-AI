@@ -29,7 +29,7 @@ class word2vec():
         self.words_list = sorted(list(word_counts.keys()),reverse=False)
         self.word_index = dict((word, i) for i, word in enumerate(self.words_list))
         self.index_word = dict((i, word) for i, word in enumerate(self.words_list))
-
+        print(self.word_index)
         training_data = []
         # CYCLE THROUGH EACH SENTENCE IN CORPUS
         for sentence in corpus:
@@ -110,17 +110,18 @@ class word2vec():
                 # CALCULATE LOSS
                 self.loss += np.max(y_pred)
                 #self.loss += -2*np.log(len(w_c)) -np.sum([u[word.index(1)] for word in w_c]) + (len(w_c) * np.log(np.sum(np.exp(u))))
-                    
+
             print ('EPOCH:',i, 'LOSS:', self.loss)
-        print(self.w1)
-        print(self.w2)
+        # print(self.w1)
+        # print(self.w2)
 
 
     # input a word, returns a vector (if available)
     def word_vec(self, word):
         w_index = self.word_index[word]
         v_w = self.w1[w_index]
-        return v_w
+        return self.softmax(v_w)
+
 
 
     # input a vector, returns nearest word(s)
@@ -174,14 +175,15 @@ settings = {}
 settings['n'] = 5                   # dimension of word embeddings
 settings['window_size'] = 2         # context window +/- center word
 settings['min_count'] = 0           # minimum word count
-settings['epochs'] = 1000         # number of training epochs
+settings['epochs'] = 1000       # number of training epochs
 settings['neg_samp'] = 10           # number of negative words to use during training
 settings['learning_rate'] = 0.1    # learning rate
 np.random.seed(0)                   # set the seed for reproducibility
 
-text = "the quick brown fox jumped ovwe the lazy dog"
-corpus = [word.lower() for word in text.split()]
+text = "the quick brown fox jumped over the lazy dog"
+corpus = [[word.lower() for word in text.split()]]
 # INITIALIZE W2V MODEL
+print(corpus)
 w2v = word2vec()
 
 # generate training data
@@ -189,6 +191,6 @@ training_data = w2v.generate_training_data(corpus)
 # train word2vec model
 w2v.train(training_data)
 
-# print(w2v.word_vec('fox'))
+print(w2v.word_vec('fox'))
 
-# print(w2v.vec_sim('fox',3))
+print(w2v.word_sim('dog',3))
