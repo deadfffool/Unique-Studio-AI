@@ -11,7 +11,6 @@ class word2vec():
         self.eta = settings['learning_rate']
         self.epochs = settings['epochs']
         self.window = settings['window_size']
-        pass
     
     
     # GENERATE TRAINING DATA
@@ -29,7 +28,6 @@ class word2vec():
         self.words_list = sorted(list(word_counts.keys()),reverse=False)
         self.word_index = dict((word, i) for i, word in enumerate(self.words_list))
         self.index_word = dict((i, word) for i, word in enumerate(self.words_list))
-        print(self.word_index)
         training_data = []
         # CYCLE THROUGH EACH SENTENCE IN CORPUS
         for sentence in corpus:
@@ -43,10 +41,12 @@ class word2vec():
 
                 # CYCLE THROUGH CONTEXT WINDOW
                 w_context = np.array([0 for i in range(0, self.v_count)])
+                num=0
                 for j in range(i-self.window, i+self.window+1):
                     if j!=i and j<=sent_len-1 and j>=0:
                         w_context+=np.array(self.word2onehot(sentence[j]))
-                training_data.append([w_target, w_context])
+                        num+=1
+                training_data.append([w_target, w_context/num])
         return np.array(training_data)
 
 
@@ -184,13 +184,14 @@ text = "the quick brown fox jumped over the lazy dog"
 corpus = [[word.lower() for word in text.split()]]
 # INITIALIZE W2V MODEL
 print(corpus)
-w2v = word2vec()
+# w2v = word2vec()
 
-# generate training data
-training_data = w2v.generate_training_data(corpus)
-# train word2vec model
-w2v.train(training_data)
+# # generate training data
+# training_data = w2v.generate_training_data(corpus)
 
-print(w2v.word_vec('fox'))
+# # train word2vec model
+# w2v.train(training_data)
 
-print(w2v.word_sim('dog',3))
+# print(w2v.word_vec('fox'))
+
+# print(w2v.word_sim('dog',3))
